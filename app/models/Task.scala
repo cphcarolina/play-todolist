@@ -35,5 +35,12 @@ object Task {
       }
    }
 
-   def delete(id: Long) {}
+   // Eliminación de tareas
+   def delete(id: Long) {
+      DB.withConnection { implicit c =>
+         SQL("delete from task where id = {id}").on(
+            'id -> id
+         ).executeUpdate()
+      }
+   }
 }
