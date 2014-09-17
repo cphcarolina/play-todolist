@@ -4,4 +4,4 @@ Sencilla aplicación play desarrollada para la asignatura Metodologías Ágiles 
 
 ## Heroku
 
-Puedes probar el despliegue en Heroku pulsando en [este enlace](http://quiet-dawn-2764.herokuapp.com/).
+Puedes probar el despliegue en Heroku pulsando en [este enlace](http://secure-plains-8450.herokuapp.com/).
