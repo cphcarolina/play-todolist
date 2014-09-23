@@ -6,6 +6,8 @@ import anorm.SqlParser._
 import play.api.db._
 import play.api.Play.current
 
+import play.api.libs.json._
+
 // Definición de los parámetros de la tarea
 case class Task(id: Long, label: String)
 
@@ -14,9 +16,9 @@ object Task {
 
    // Auxiliar para extraer las tareas de la BD (parser)
    val task = {
-      get[Long] ("id") ~
+      get[Long]("id") ~
       get[String]("label") map {
-         case id~label => Task(id,label)
+         case id ~ label => Task(id,label)
       }
    }
    
@@ -25,6 +27,7 @@ object Task {
       SQL("Select * from task").as(task *) 
       // (task *) sirve para crear tantas tareas como líneas en la tabla existan
    }
+
 
    // Método para crear tareas
    def create(label: String) {

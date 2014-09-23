@@ -2,10 +2,10 @@ package controllers
 
 import play.api._
 import play.api.mvc._
-
 import play.api.data._
 import play.api.data.Forms._
-
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
 import models.Task
 
 object Application extends Controller {
@@ -15,15 +15,25 @@ object Application extends Controller {
       "label" -> nonEmptyText
    )
 
+  // Para la conversión a JSON
+  implicit val taskWrites: Writes[Task] = (
+    (JsPath \ "id").write[Long] and
+    (JsPath \ "label").write[String]
+  )(unlift(Task.unapply))
+
    // Acceso a la raíz (índice)
   def index = Action {
     Redirect(routes.Application.tasks)
   }
 
-  // Listado de tareas y formulario de creación de las mismas
+  // Listado de tareas
   def tasks = Action {
-    Ok(views.html.index(Task.all(), taskForm))
+    var json = Json.toJson(Task.all())
+    Ok(json)
   }
+
+  // Obtención de una tarea contreta
+  def getTask(id: Long) = TODO
 
   // Creación de una tarea (desde el template)
   def newTask = Action { implicit request =>

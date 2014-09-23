@@ -9,6 +9,8 @@ CREATE TABLE task (
    label varchar(255)
 );
 
+
+
 # --- !Downs
 
 DROP TABLE task;
