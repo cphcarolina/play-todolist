@@ -18,14 +18,26 @@ object Task {
    val task = {
       get[Long]("id") ~
       get[String]("label") map {
-         case id ~ label => Task(id,label)
+      case id~label => Task(id, label)
       }
    }
+
    
    // Método para obtener todas las tareas
    def all(): List[Task] = DB.withConnection { implicit c =>
       SQL("Select * from task").as(task *) 
       // (task *) sirve para crear tantas tareas como líneas en la tabla existan
+   }
+
+   // Método para obtener una sola tarea por identificador
+   // sino la tarea no existe, devuelve una tarea vacía con el identificador 0
+   def obtener(id: Long): Task = DB.withConnection { implicit c =>
+      val rows = SQL("select * from task where id = {id}").on("id" -> id).apply()
+      if(!rows.isEmpty){
+      val firstRow = rows.head
+         new Task(firstRow[Long]("id"),firstRow[String]("label"))
+      }
+      else{ new Task(0,"") }
    }
 
 

@@ -13,7 +13,7 @@ GET      /assets/*file              controllers.Assets.at(path="/public", file)
 GET      /tasks                     controllers.Application.tasks
 
 ## Devuelve un objeto JSON con la tarea solicitada
-GET      /tasks/:id                 controllers.Application.getTask(id: Long)
+GET      /tasks/:id                 controllers.Application.obtenerTask(id: Long)
 
 ## Crea una tarea nueva devolviéndola como objeto JSON en caso de éxito 
 POST     /tasks                     controllers.Application.newTask

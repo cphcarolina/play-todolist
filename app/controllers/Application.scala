@@ -33,7 +33,10 @@ object Application extends Controller {
   }
 
   // Obtención de una tarea contreta
-  def getTask(id: Long) = TODO
+  def obtenerTask(id: Long) = Action  {
+    var json = Json.toJson(Task.obtener(id))
+    Ok(json)
+  }
 
   // Creación de una tarea (desde el template)
   def newTask = Action { implicit request =>
