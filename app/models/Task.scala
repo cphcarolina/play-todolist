@@ -60,11 +60,12 @@ object Task {
    }
 
    // Eliminación de tareas
-   def delete(id: Long) {
-      DB.withConnection { implicit c =>
+   def delete(id: Long): Int = {
+      val lineas: Int = DB.withConnection { implicit c =>
          SQL("delete from task where id = {id}").on(
             'id -> id
          ).executeUpdate()
       }
+      lineas
    }
 }

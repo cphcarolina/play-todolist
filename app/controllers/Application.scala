@@ -57,7 +57,12 @@ object Application extends Controller {
 
   // Eliminación de tareas (desde el template)
   def deleteTask(id: Long) = Action {
-    Task.delete(id)
-    Redirect(routes.Application.tasks)
+    if(Task.delete(id)==0){
+      NotFound("La tarea "+id+" no existe");
+    }
+    else{
+      Redirect(routes.Application.tasks)
+    }
+    
   }
 }
