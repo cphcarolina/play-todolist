@@ -9,6 +9,14 @@ GET      /                          controllers.Application.index
 GET      /assets/*file              controllers.Assets.at(path="/public", file)
 
 # Tasks
+## Lista las tareas existentes devolviéndolas como una colección de objetos JSON
 GET      /tasks                     controllers.Application.tasks
+
+## Devuelve un objeto JSON con la tarea solicitada
+GET      /tasks/:id                 controllers.Application.obtenerTask(id: Long)
+
+## Crea una tarea nueva devolviéndola como objeto JSON en caso de éxito 
 POST     /tasks                     controllers.Application.newTask
-POST     /tasks/:id/delete          controllers.Application.deleteTask(id: Long)
+
+## Elimina la tarea indicada
+DELETE   /tasks/:id                 controllers.Application.deleteTask(id: Long)
