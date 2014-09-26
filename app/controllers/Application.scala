@@ -43,8 +43,14 @@ object Application extends Controller {
     taskForm.bindFromRequest.fold(
          errors => BadRequest(views.html.index(Task.all(), errors)),
          label => {
-            Task.create(label)
-            Redirect(routes.Application.tasks)
+            val id: Long = Task.create(label)
+            if(id!= null) {
+              var json = Json.toJson(Task.obtener(id))
+              Created(json)
+            }
+            else {
+              BadRequest("Error: Tarea no añadida")
+            }
          }
       )
   }
