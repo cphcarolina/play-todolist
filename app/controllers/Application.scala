@@ -30,13 +30,27 @@ object Application extends Controller {
   // Listado de tareas
   def tasks(usuario: String = "anonimo") = Action {
     var json = Json.toJson(Task.all(usuario))
-    Ok(json)
+    var error = Json.toJson(List(new Task(0,"","")))
+
+    if(json == error) {
+      NotFound("El usuario "+usuario+" no existe.")
+    }
+    else {
+      Ok(json)
+    }
   }
 
   // Obtención de una tarea contreta
   def obtenerTask(id: Long) = Action  {
-    var json = Json.toJson(Task.obtener(id))
-    Ok(json)
+    var tarea = Task.obtener(id)
+    
+    if(tarea.id!=0) {
+      var json = Json.toJson(tarea)
+      Ok(json)
+    }
+    else {
+      NotFound("La tarea con el identificador "+id+" no existe.")
+    }
   }
 
   // Creación de una tarea (desde el template)
@@ -45,12 +59,15 @@ object Application extends Controller {
          errors => BadRequest("Error en la petición realizada."),
          label => {
             val id: Long = Task.create(label, usuario)
-            if(id!= null) {
-              var json = Json.toJson(Task.obtener(id))
-              Created(json)
+
+            var tarea = Task.obtener(id)
+            
+            if(tarea.id!=0) {
+              var json = Json.toJson(tarea)
+              Ok(json)
             }
             else {
-              BadRequest("Error: Tarea no añadida.")
+              NotFound("El usuario "+usuario+" no existe.")
             }
          }
       )

@@ -31,14 +31,34 @@ object Task {
    
    // Método para obtener todas las tareas
    def all(usuario: String): List[Task] = DB.withConnection { implicit c =>
-      SQL("""
-         Select task.id, task.label, usuario.nombre 
-         from task, usuario
-         where usuario.nombre = {usuario}
-         and task.usuarioFK = usuario.id
+      // Comprobamos si existe el usuario
+      val rows = SQL("""
+         select id from usuario
+         where nombre = {usuario}
          """)
       .on('usuario -> usuario)
-      .as(task *) 
+      .apply()
+
+      if(!rows.isEmpty) {
+         // Como existe, listamos las tareas
+         val firstRow = rows.head
+         val user: Long = firstRow[Long]("id")
+
+         SQL("""
+            Select task.id, task.label, usuario.nombre 
+            from task, usuario
+            where task.usuarioFK = {user}
+         """)
+         .on('user -> user)
+         .as(task *) 
+
+      }
+      else { 
+         List(new Task(0,"",""))
+      }
+
+
+      
       // (task *) sirve para crear tantas tareas como líneas en la tabla existan
    }
 
@@ -54,14 +74,14 @@ object Task {
       .on('id -> id)
       .apply()
       
-      if(!rows.isEmpty){
+      if(!rows.isEmpty) {
       val firstRow = rows.head
          new Task(
             firstRow[Long]("task.id"),
             firstRow[String]("task.label"),
             firstRow[String]("usuario.nombre"))
       }
-      else{ new Task(0,"","") }
+      else { new Task(0,"","") }
    }
 
 
@@ -69,6 +89,7 @@ object Task {
    // devuelve el identificador de la tarea creada
    // o 0 en caso de que exista un error
    def create(label: String, usuario: String): Long = DB.withConnection { implicit c =>
+      // Comprobamos si existe el usuario
       val rows = SQL("""
          select id from usuario
          where nombre = {usuario}
@@ -76,7 +97,8 @@ object Task {
       .on('usuario -> usuario)
       .apply()
 
-      if(!rows.isEmpty){
+      if(!rows.isEmpty) {
+         // Como existe, creamos la tarea
          val firstRow = rows.head
          val user: Long = firstRow[Long]("id")
 
@@ -90,7 +112,7 @@ object Task {
          
          unroll(id)
       }
-      else{ 0 }
+      else { 0 }
    }
 
    // Eliminación de tareas
