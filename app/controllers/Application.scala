@@ -10,10 +10,10 @@ import models.Task
 
 object Application extends Controller {
 
-   // Variable formulario
-   val taskForm = Form(
-      "label" -> nonEmptyText
-   )
+  // Variable formulario
+  val taskForm = Form(
+    "label" -> nonEmptyText
+  )
 
   // Para la conversión a JSON
   implicit val taskWrites: Writes[Task] = (

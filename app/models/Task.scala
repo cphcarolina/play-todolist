@@ -45,13 +45,21 @@ object Task {
    // Método para obtener una sola tarea por identificador
    // sino la tarea no existe, devuelve una tarea vacía {"id":0,"label":""}
    def obtener(id: Long): Task = DB.withConnection { implicit c =>
-      val rows = SQL("select * from task where id = {id}").on("id" -> id).apply()
+      val rows = SQL("""
+         select task.id, task.label, usuario.nombre 
+         from task, usuario
+         where task.id = {id}
+         and usuario.id = task.usuarioFK
+         """)
+      .on('id -> id)
+      .apply()
+      
       if(!rows.isEmpty){
       val firstRow = rows.head
          new Task(
-            firstRow[Long]("id"),
-            firstRow[String]("label"),
-            firstRow[String]("usuario"))
+            firstRow[Long]("task.id"),
+            firstRow[String]("task.label"),
+            firstRow[String]("usuario.nombre"))
       }
       else{ new Task(0,"","") }
    }
