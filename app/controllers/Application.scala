@@ -18,17 +18,18 @@ object Application extends Controller {
   // Para la conversión a JSON
   implicit val taskWrites: Writes[Task] = (
     (JsPath \ "id").write[Long] and
-    (JsPath \ "label").write[String]
+    (JsPath \ "label").write[String] and
+    (JsPath \ "usuario").write[String]
   )(unlift(Task.unapply))
 
    // Acceso a la raíz (índice)
   def index = Action {
-    Redirect(routes.Application.tasks)
+    Redirect(routes.Application.tasks("anonimo"))
   }
 
   // Listado de tareas
-  def tasks = Action {
-    var json = Json.toJson(Task.all())
+  def tasks(usuario: String = "anonimo") = Action {
+    var json = Json.toJson(Task.all(usuario))
     Ok(json)
   }
 
@@ -39,9 +40,9 @@ object Application extends Controller {
   }
 
   // Creación de una tarea (desde el template)
-  def newTask = Action { implicit request =>
+  def newTask(usuario: String = "anonimo") = Action { implicit request =>
     taskForm.bindFromRequest.fold(
-         errors => BadRequest(views.html.index(Task.all(), errors)),
+         errors => BadRequest("Error en la petición realizada."),
          label => {
             val id: Long = Task.create(label)
             if(id!= null) {
@@ -49,7 +50,7 @@ object Application extends Controller {
               Created(json)
             }
             else {
-              BadRequest("Error: Tarea no añadida")
+              BadRequest("Error: Tarea no añadida.")
             }
          }
       )
@@ -61,8 +62,9 @@ object Application extends Controller {
       NotFound("La tarea "+id+" no existe");
     }
     else{
-      Redirect(routes.Application.tasks)
+      Redirect(routes.Application.index)
     }
     
   }
+
 }

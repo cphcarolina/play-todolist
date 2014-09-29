@@ -9,7 +9,7 @@ import play.api.Play.current
 import play.api.libs.json._
 
 // Definición de los parámetros de la tarea
-case class Task(id: Long, label: String)
+case class Task(id: Long, label: String, usuario: String)
 
 // DEfinición de los métodos de la tarea
 object Task {
@@ -17,9 +17,10 @@ object Task {
    // Auxiliar para extraer la lista 
    // de tareas de la BD (parser)
    val task = {
-      get[Long]("id") ~
-      get[String]("label") map {
-      case id~label => Task(id, label)
+      get[Long]("task.id") ~
+      get[String]("task.label") ~
+      get[String]("usuario.nombre")map {
+      case id~label~usuario => Task(id, label, usuario)
       }
    }
 
@@ -29,8 +30,15 @@ object Task {
 
    
    // Método para obtener todas las tareas
-   def all(): List[Task] = DB.withConnection { implicit c =>
-      SQL("Select * from task").as(task *) 
+   def all(usuario: String): List[Task] = DB.withConnection { implicit c =>
+      SQL("""
+         Select task.id, task.label, usuario.nombre 
+         from task, usuario
+         where usuario.nombre = {usuario}
+         and task.usuarioFK = usuario.id
+         """)
+      .on('usuario -> usuario)
+      .as(task *) 
       // (task *) sirve para crear tantas tareas como líneas en la tabla existan
    }
 
@@ -40,9 +48,12 @@ object Task {
       val rows = SQL("select * from task where id = {id}").on("id" -> id).apply()
       if(!rows.isEmpty){
       val firstRow = rows.head
-         new Task(firstRow[Long]("id"),firstRow[String]("label"))
+         new Task(
+            firstRow[Long]("id"),
+            firstRow[String]("label"),
+            firstRow[String]("usuario"))
       }
-      else{ new Task(0,"") }
+      else{ new Task(0,"","") }
    }
 
 
