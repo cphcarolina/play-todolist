@@ -68,14 +68,29 @@ object Task {
    // Método para crear tareas
    // devuelve el identificador de la tarea creada
    // o 0 en caso de que exista un error
-   def create(label: String): Long = {
-      val id: Option[Long] = DB.withConnection { implicit c =>
-         SQL("insert into task (label) values ({label})").on(
-            'label -> label
-         ).executeInsert()
+   def create(label: String, usuario: String): Long = DB.withConnection { implicit c =>
+      val rows = SQL("""
+         select id from usuario
+         where nombre = {usuario}
+         """)
+      .on('usuario -> usuario)
+      .apply()
+
+      if(!rows.isEmpty){
+         val firstRow = rows.head
+         val user: Long = firstRow[Long]("id")
+
+         val id: Option[Long] = SQL("""
+            insert into task (label, usuarioFK) values ({label}, {user})
+            """)
+         .on(
+            'label -> label,
+            'user -> user)
+         .executeInsert()
+         
+         unroll(id)
       }
-      
-      unroll(id)
+      else{ 0 }
    }
 
    // Eliminación de tareas

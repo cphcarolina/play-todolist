@@ -44,7 +44,7 @@ object Application extends Controller {
     taskForm.bindFromRequest.fold(
          errors => BadRequest("Error en la petición realizada."),
          label => {
-            val id: Long = Task.create(label)
+            val id: Long = Task.create(label, usuario)
             if(id!= null) {
               var json = Json.toJson(Task.obtener(id))
               Created(json)
