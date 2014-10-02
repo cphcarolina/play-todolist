@@ -10,46 +10,64 @@ import models.Task
 
 object Application extends Controller {
 
-   // Variable formulario
-   val taskForm = Form(
-      "label" -> nonEmptyText
-   )
+  // Variable formulario
+  val taskForm = Form(
+    "label" -> nonEmptyText
+  )
 
   // Para la conversión a JSON
   implicit val taskWrites: Writes[Task] = (
     (JsPath \ "id").write[Long] and
-    (JsPath \ "label").write[String]
+    (JsPath \ "label").write[String] and
+    (JsPath \ "usuario").write[String]
   )(unlift(Task.unapply))
 
    // Acceso a la raíz (índice)
   def index = Action {
-    Redirect(routes.Application.tasks)
+    Redirect(routes.Application.tasks("anonimo"))
   }
 
   // Listado de tareas
-  def tasks = Action {
-    var json = Json.toJson(Task.all())
-    Ok(json)
+  def tasks(usuario: String = "anonimo") = Action {
+    var json = Json.toJson(Task.all(usuario))
+    var error = Json.toJson(List(new Task(0,"","")))
+
+    if(json == error) {
+      NotFound("El usuario "+usuario+" no existe.")
+    }
+    else {
+      Ok(json)
+    }
   }
 
   // Obtención de una tarea contreta
   def obtenerTask(id: Long) = Action  {
-    var json = Json.toJson(Task.obtener(id))
-    Ok(json)
+    var tarea = Task.obtener(id)
+    
+    if(tarea.id!=0) {
+      var json = Json.toJson(tarea)
+      Ok(json)
+    }
+    else {
+      NotFound("La tarea con el identificador "+id+" no existe.")
+    }
   }
 
   // Creación de una tarea (desde el template)
-  def newTask = Action { implicit request =>
+  def newTask(usuario: String = "anonimo") = Action { implicit request =>
     taskForm.bindFromRequest.fold(
-         errors => BadRequest(views.html.index(Task.all(), errors)),
+         errors => BadRequest("Error en la petición realizada."),
          label => {
-            val id: Long = Task.create(label)
-            if(id!= null) {
-              var json = Json.toJson(Task.obtener(id))
-              Created(json)
+            val id: Long = Task.create(label, usuario)
+
+            var tarea = Task.obtener(id)
+            
+            if(tarea.id!=0) {
+              var json = Json.toJson(tarea)
+              Ok(json)
             }
             else {
-              BadRequest("Error: Tarea no añadida")
+              NotFound("El usuario "+usuario+" no existe.")
             }
          }
       )
@@ -61,8 +79,9 @@ object Application extends Controller {
       NotFound("La tarea "+id+" no existe");
     }
     else{
-      Redirect(routes.Application.tasks)
+      Redirect(routes.Application.index)
     }
     
   }
+
 }

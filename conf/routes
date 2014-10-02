@@ -9,14 +9,21 @@ GET      /                          controllers.Application.index
 GET      /assets/*file              controllers.Assets.at(path="/public", file)
 
 # Tasks
-## Lista las tareas existentes devolviéndolas como una colección de objetos JSON
-GET      /tasks                     controllers.Application.tasks
+## Lista las tareas existentes del usuario "anonimo" devolviéndolas como una colección de objetos JSON
+GET      /tasks                     controllers.Application.tasks(usuario: String = "anonimo")
 
 ## Devuelve un objeto JSON con la tarea solicitada
 GET      /tasks/:id                 controllers.Application.obtenerTask(id: Long)
 
-## Crea una tarea nueva devolviéndola como objeto JSON en caso de éxito 
-POST     /tasks                     controllers.Application.newTask
+## Crea una tarea nueva del usuario "anonimo" devolviéndola como objeto JSON en caso de éxito 
+POST     /tasks                     controllers.Application.newTask(usuario: String = "anonimo")
 
 ## Elimina la tarea indicada
 DELETE   /tasks/:id                 controllers.Application.deleteTask(id: Long)
+
+# Usuarios
+## Lista las tareas de un usuario devolviéndolas como una colección de objetos JSON
+GET      /:usuario/tasks            controllers.Application.tasks(usuario: String)
+
+## Crea una tarea nueva de un usuario devolviéndola como objeto JSON en caso de éxito
+POST     /:usuario/tasks            controllers.Application.newTask(usuario: String)
