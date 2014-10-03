@@ -19,18 +19,13 @@ object Task {
    val task = {
       get[Long]("task.id") ~
       get[String]("task.label") ~
-      get[String]("usuario.nombre")map {
-      case id~label~usuario => Task(id, label, usuario)
+      get[String]("usuario.nombre") map {
+         case id~label~usuario => Task(id, label, usuario)
       }
    }
-
-   // Hace un cast entre Option[Long] y Long
-   // para devolver los id tras las sentencias SQL
-   def unroll(opt: Option[Long]): Long = opt getOrElse 0
-
    
    // Método para obtener todas las tareas
-   def all(usuario: String): List[Task] = DB.withConnection { implicit c =>
+   def all(usuario: String): Option[List[Task]] = DB.withConnection { implicit c =>
       // Comprobamos si existe el usuario
       val rows = SQL("""
          select id from usuario
@@ -44,28 +39,24 @@ object Task {
          val firstRow = rows.head
          val user: Long = firstRow[Long]("id")
 
-         SQL("""
+         var lista: List[Task] = SQL("""
             Select task.id, task.label, usuario.nombre 
             from task, usuario
-            where task.usuarioFK = {user}
+            where task.usuarioFK = usuario.id
+            and usuario.id = {user}
          """)
          .on('user -> user)
-         .as(task *) 
+         .as(task *)
 
+         Some(lista)
       }
-      else { 
-         List(new Task(0,"",""))
-      }
-
-
-      
-      // (task *) sirve para crear tantas tareas como líneas en la tabla existan
+      else { None }
    }
 
    // Método para obtener una sola tarea por identificador
    // sino la tarea no existe, devuelve una tarea vacía {"id":0,"label":""}
-   def obtener(id: Long): Task = DB.withConnection { implicit c =>
-      val rows = SQL("""
+   def obtener(id: Long): Option[Task] = DB.withConnection { implicit c =>
+      var rows = SQL("""
          select task.id, task.label, usuario.nombre 
          from task, usuario
          where task.id = {id}
@@ -73,22 +64,24 @@ object Task {
          """)
       .on('id -> id)
       .apply()
+
+//      .as(Task.task.singleOpt)      
       
       if(!rows.isEmpty) {
-      val firstRow = rows.head
-         new Task(
+         var firstRow = rows.head
+         Some(new Task(
             firstRow[Long]("task.id"),
             firstRow[String]("task.label"),
-            firstRow[String]("usuario.nombre"))
+            firstRow[String]("usuario.nombre")))
       }
-      else { new Task(0,"","") }
+      else { None }
    }
 
 
    // Método para crear tareas
    // devuelve el identificador de la tarea creada
    // o 0 en caso de que exista un error
-   def create(label: String, usuario: String): Long = DB.withConnection { implicit c =>
+   def create(label: String, usuario: String): Option[Long] = DB.withConnection { implicit c =>
       // Comprobamos si existe el usuario
       val rows = SQL("""
          select id from usuario
@@ -110,18 +103,18 @@ object Task {
             'user -> user)
          .executeInsert()
          
-         unroll(id)
+         id
       }
-      else { 0 }
+      else { None }
    }
 
    // Eliminación de tareas
    def delete(id: Long): Int = {
-      val lineas: Int = DB.withConnection { implicit c =>
+      DB.withConnection { implicit c =>
          SQL("delete from task where id = {id}").on(
             'id -> id
          ).executeUpdate()
       }
-      lineas
+
    }
 }

@@ -29,27 +29,28 @@ object Application extends Controller {
 
   // Listado de tareas
   def tasks(usuario: String = "anonimo") = Action {
-    var json = Json.toJson(Task.all(usuario))
-    var error = Json.toJson(List(new Task(0,"","")))
+    var tareas = Task.all(usuario)
 
-    if(json == error) {
-      NotFound("El usuario "+usuario+" no existe.")
-    }
-    else {
-      Ok(json)
+    tareas match {
+      case Some(tareas) => {
+        var json = Json.toJson(tareas)
+        Ok(json)
+
+      }
+      case None => NotFound("El usuario "+usuario+" no existe.")
     }
   }
 
   // Obtención de una tarea contreta
   def obtenerTask(id: Long) = Action  {
     var tarea = Task.obtener(id)
-    
-    if(tarea.id!=0) {
-      var json = Json.toJson(tarea)
-      Ok(json)
-    }
-    else {
-      NotFound("La tarea con el identificador "+id+" no existe.")
+
+    tarea match {
+      case Some(tarea) => {
+        var json = Json.toJson(tarea)
+        Ok(json)        
+      }
+      case None => NotFound("La tarea con el identificador "+id+" no existe.")
     }
   }
 
@@ -58,16 +59,15 @@ object Application extends Controller {
     taskForm.bindFromRequest.fold(
          errors => BadRequest("Error en la petición realizada."),
          label => {
-            val id: Long = Task.create(label, usuario)
+            var id: Option[Long] = Task.create(label, usuario)
 
-            var tarea = Task.obtener(id)
-            
-            if(tarea.id!=0) {
-              var json = Json.toJson(tarea)
-              Ok(json)
-            }
-            else {
-              NotFound("El usuario "+usuario+" no existe.")
+            id match {
+              case Some(id)  => {
+                var tarea = Task.obtener(id)
+                var json = Json.toJson(tarea)
+                Ok(json)
+              }
+              case None => NotFound("El usuario "+usuario+" no existe.")
             }
          }
       )
@@ -75,13 +75,8 @@ object Application extends Controller {
 
   // Eliminación de tareas (desde el template)
   def deleteTask(id: Long) = Action {
-    if(Task.delete(id)==0){
-      NotFound("La tarea "+id+" no existe");
-    }
-    else{
-      Redirect(routes.Application.index)
-    }
-    
+    if(Task.delete(id)==0){ NotFound("La tarea "+id+" no existe"); }
+    else{ Ok("Tarea "+id+" ha sido eliminada con éxito") }  
   }
 
 }
