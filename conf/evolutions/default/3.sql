@@ -20,13 +20,17 @@ INSERT INTO usuario (nombre)
 ALTER TABLE task
    ADD usuarioFK integer;
 
-ALTER TABLE task
-   ADD FOREIGN KEY (usuarioFK) REFERENCES usuario(id);
-
 UPDATE task
    SET usuarioFK = 1;
 
+ALTER TABLE task
+   ADD FOREIGN KEY (usuarioFK) REFERENCES usuario(id);
+
+
 # --- !Downs
+
+ALTER TABLE task
+	DROP FOREIGN KEY usuarioFK;
 
 DROP TABLE usuario;
 
