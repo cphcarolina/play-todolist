@@ -4,11 +4,8 @@ import play.api._
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
-import play.api.libs.json._
 import java.util.Date
-//import org.joda.time.DateTime
-//import org.joda.time.format.DateTimeFormat
-import play.api.libs.functional.syntax._
+
 import models.Task
 
 object Application extends Controller {
@@ -18,18 +15,7 @@ object Application extends Controller {
     "label" -> nonEmptyText
   )
 
-  // Para la conversión a JSON
- // val dtf = DateTimeFormat.forPattern("MM/dd/YYYY")
-
-  implicit val taskWrites: Writes[Task] = (
-    (JsPath \ "id").write[Long] and
-    (JsPath \ "label").write[String] and
-    (JsPath \ "usuario").write[String] and
-    //(JsPath \ "fecha").write[String].contramap[DateTime](dt => dtf.print(dt))
-    (JsPath \ "fecha").write[Option[Date]]
-  )(unlift(Task.unapply))
-
-   // Acceso a la raíz (índice)
+  // Acceso a la raíz (índice)
   def index = Action {
     Redirect(routes.Application.tasks("anonimo"))
   }
