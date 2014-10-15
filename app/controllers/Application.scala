@@ -5,6 +5,9 @@ import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.libs.json._
+import java.util.Date
+//import org.joda.time.DateTime
+//import org.joda.time.format.DateTimeFormat
 import play.api.libs.functional.syntax._
 import models.Task
 
@@ -16,10 +19,14 @@ object Application extends Controller {
   )
 
   // Para la conversión a JSON
+ // val dtf = DateTimeFormat.forPattern("MM/dd/YYYY")
+
   implicit val taskWrites: Writes[Task] = (
     (JsPath \ "id").write[Long] and
     (JsPath \ "label").write[String] and
-    (JsPath \ "usuario").write[String]
+    (JsPath \ "usuario").write[String] and
+    //(JsPath \ "fecha").write[String].contramap[DateTime](dt => dtf.print(dt))
+    (JsPath \ "fecha").write[Option[Date]]
   )(unlift(Task.unapply))
 
    // Acceso a la raíz (índice)
@@ -78,5 +85,11 @@ object Application extends Controller {
     if(Task.delete(id)==0){ NotFound("La tarea "+id+" no existe"); }
     else{ Ok("Tarea "+id+" ha sido eliminada con éxito") }  
   }
+
+  // Listar las tareas futuras (fecha >= hoy)
+  def futuras(usuario: String = "anonimo") = TODO
+
+  // Retrasa una tarea los días indicados
+  def posponer(id: Long, day: Long) = TODO
 
 }

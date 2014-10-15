@@ -27,3 +27,11 @@ GET      /:usuario/tasks            controllers.Application.tasks(usuario: Strin
 
 ## Crea una tarea nueva de un usuario devolviéndola como objeto JSON en caso de éxito
 POST     /:usuario/tasks            controllers.Application.newTask(usuario: String)
+
+# Fechas
+## Lista las tareas cuya fecha sea igual o mayor a la actual (hoy)
+GET 	/que_hacer							controllers.Application.futuras(usuario: String = "anonimo")
+GET		/:usuario/que_hacer					controllers.Application.futuras(usuario: String)
+
+## Añade los días indicados a la tarea
+PUT 	/task/:id/:days				controllers.Application.posponer(id: Long, days: Long)

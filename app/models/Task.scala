@@ -6,12 +6,13 @@ import anorm.SqlParser._
 import play.api.db._
 import play.api.Play.current
 
-import play.api.libs.json._
+import java.util.Date
+//import org.joda.time.{DateTime}
 
 // Definición de los parámetros de la tarea
-case class Task(id: Long, label: String, usuario: String)
+case class Task(id: Long, label: String, usuario: String, fecha: Option[Date])
 
-// DEfinición de los métodos de la tarea
+// Definición de los métodos de la tarea
 object Task {
 
    // Auxiliar para extraer la lista 
@@ -19,15 +20,16 @@ object Task {
    val task = {
       get[Long]("task.id") ~
       get[String]("task.label") ~
-      get[String]("usuario.nombre") map {
-         case id~label~usuario => Task(id, label, usuario)
+      get[String]("usuario.nombre") ~
+      get[Option[Date]]("task.fecha") map {
+         case id~label~usuario~fecha => Task(id, label, usuario, fecha)
       }
    }
    
    // Método para obtener todas las tareas
    def all(usuario: String): Option[List[Task]] = DB.withConnection { implicit c =>
       // Comprobamos si existe el usuario
-      val rows = SQL("""
+      var rows = SQL("""
          select id from usuario
          where nombre = {usuario}
          """)
@@ -36,11 +38,11 @@ object Task {
 
       if(!rows.isEmpty) {
          // Como existe, listamos las tareas
-         val firstRow = rows.head
-         val user: Long = firstRow[Long]("id")
+         var firstRow = rows.head
+         var user: Long = firstRow[Long]("id")
 
          var lista: List[Task] = SQL("""
-            Select task.id, task.label, usuario.nombre 
+            Select task.id, task.label, usuario.nombre, task.fecha 
             from task, usuario
             where task.usuarioFK = usuario.id
             and usuario.id = {user}
@@ -57,7 +59,7 @@ object Task {
    // sino la tarea no existe, devuelve una tarea vacía {"id":0,"label":""}
    def obtener(id: Long): Option[Task] = DB.withConnection { implicit c =>
       var rows = SQL("""
-         select task.id, task.label, usuario.nombre 
+         select task.id, task.label, usuario.nombre, task.fecha
          from task, usuario
          where task.id = {id}
          and usuario.id = task.usuarioFK
@@ -69,10 +71,14 @@ object Task {
       
       if(!rows.isEmpty) {
          var firstRow = rows.head
-         Some(new Task(
+         var tarea = new Task(
             firstRow[Long]("task.id"),
             firstRow[String]("task.label"),
-            firstRow[String]("usuario.nombre")))
+            firstRow[String]("usuario.nombre"),
+            firstRow[Option[Date]]("task.fecha"))
+
+         Console.println("%%% models.Task %%% obtener %%% Fecha: "+tarea.fecha)
+         Some(tarea)
       }
       else { None }
    }
@@ -94,15 +100,19 @@ object Task {
          // Como existe, creamos la tarea
          val firstRow = rows.head
          val user: Long = firstRow[Long]("id")
+         val fecha: Date = new Date()
+
+         Console.println("%%% models.Task %%% crear %%% Fecha: "+fecha)
 
          val id: Option[Long] = SQL("""
-            insert into task (label, usuarioFK) values ({label}, {user})
+            insert into task (label, usuarioFK, fecha) values ({label}, {user}, {fecha})
             """)
          .on(
             'label -> label,
-            'user -> user)
+            'user -> user,
+            'fecha -> fecha)
          .executeInsert()
-         
+
          id
       }
       else { None }
@@ -117,4 +127,5 @@ object Task {
       }
 
    }
+
 }
