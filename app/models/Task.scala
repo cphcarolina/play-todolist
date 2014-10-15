@@ -9,6 +9,9 @@ import play.api.Play.current
 import java.util.Date
 //import org.joda.time.{DateTime}
 
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
+
 // Definición de los parámetros de la tarea
 case class Task(id: Long, label: String, usuario: String, fecha: Option[Date])
 
@@ -25,9 +28,18 @@ object Task {
          case id~label~usuario~fecha => Task(id, label, usuario, fecha)
       }
    }
+
+   // Definición del json
+   implicit val taskWrites: Writes[Task] = (
+       (JsPath \ "id").write[Long] and
+       (JsPath \ "label").write[String] and
+       (JsPath \ "usuario").write[String] and
+       //(JsPath \ "fecha").write[String].contramap[DateTime](dt => dtf.print(dt))
+       (JsPath \ "fecha").write[Option[Date]]
+     )(unlift(Task.unapply))
    
    // Método para obtener todas las tareas
-   def all(usuario: String): Option[List[Task]] = DB.withConnection { implicit c =>
+   def all(usuario: String): Option[JsValue] = DB.withConnection { implicit c =>
       // Comprobamos si existe el usuario
       var rows = SQL("""
          select id from usuario
@@ -50,14 +62,14 @@ object Task {
          .on('user -> user)
          .as(task *)
 
-         Some(lista)
+         Some(Json.toJson(lista))
       }
       else { None }
    }
 
    // Método para obtener una sola tarea por identificador
    // sino la tarea no existe, devuelve una tarea vacía {"id":0,"label":""}
-   def obtener(id: Long): Option[Task] = DB.withConnection { implicit c =>
+   def obtener(id: Long): Option[JsValue] = DB.withConnection { implicit c =>
       var rows = SQL("""
          select task.id, task.label, usuario.nombre, task.fecha
          from task, usuario
@@ -78,7 +90,7 @@ object Task {
             firstRow[Option[Date]]("task.fecha"))
 
          Console.println("%%% models.Task %%% obtener %%% Fecha: "+tarea.fecha)
-         Some(tarea)
+         Some(Json.toJson(tarea))
       }
       else { None }
    }

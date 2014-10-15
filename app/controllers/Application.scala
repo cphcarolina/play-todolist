@@ -40,9 +40,7 @@ object Application extends Controller {
 
     tareas match {
       case Some(tareas) => {
-        var json = Json.toJson(tareas)
-        Ok(json)
-
+        Ok(tareas)
       }
       case None => NotFound("El usuario "+usuario+" no existe.")
     }
@@ -54,8 +52,7 @@ object Application extends Controller {
 
     tarea match {
       case Some(tarea) => {
-        var json = Json.toJson(tarea)
-        Ok(json)        
+        Ok(tarea)        
       }
       case None => NotFound("La tarea con el identificador "+id+" no existe.")
     }
@@ -71,8 +68,14 @@ object Application extends Controller {
             id match {
               case Some(id)  => {
                 var tarea = Task.obtener(id)
-                var json = Json.toJson(tarea)
-                Ok(json)
+
+                tarea match {
+                  case Some(tarea) => {
+                    Ok(tarea)        
+                  }
+                  case None => NotFound("La tarea con el identificador "+id+" no existe.")
+                }
+
               }
               case None => NotFound("El usuario "+usuario+" no existe.")
             }
