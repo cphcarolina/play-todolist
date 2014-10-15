@@ -31,5 +31,3 @@ post /{usuario}/tasks
 ### Eliminación de tareas
 
 delete /tasks/{id}
-
-

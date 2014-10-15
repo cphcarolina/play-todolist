@@ -13,7 +13,7 @@ GET      /assets/*file              controllers.Assets.at(path="/public", file)
 GET      /tasks                     controllers.Application.tasks(usuario: String = "anonimo")
 
 ## Devuelve un objeto JSON con la tarea solicitada
-GET      /tasks/:id                 controllers.Application.obtenerTask(id: Long)
+GET      /tasks/:id                 controllers.Application.obtainTask(id: Long)
 
 ## Crea una tarea nueva del usuario "anonimo" devolviéndola como objeto JSON en caso de éxito 
 POST     /tasks                     controllers.Application.newTask(usuario: String = "anonimo")
@@ -30,8 +30,8 @@ POST     /:usuario/tasks            controllers.Application.newTask(usuario: Str
 
 # Fechas
 ## Lista las tareas cuya fecha sea igual o mayor a la actual (hoy)
-GET 	/que_hacer							controllers.Application.futuras(usuario: String = "anonimo")
-GET		/:usuario/que_hacer					controllers.Application.futuras(usuario: String)
+GET 	/que_hacer							controllers.Application.nextTasks(usuario: String = "anonimo")
+GET		/:usuario/que_hacer					controllers.Application.nextTasks(usuario: String)
 
 ## Añade los días indicados a la tarea
-PUT 	/task/:id/:days				controllers.Application.posponer(id: Long, days: Long)
+PUT 	/task/:id/:days				controllers.Application.postponeTask(id: Long, days: Int)
