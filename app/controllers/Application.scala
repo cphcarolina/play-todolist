@@ -98,6 +98,6 @@ object Application extends Controller {
   // Eliminación de tareas (desde el template)
   def deleteTask(id: Long) = Action {
     if(Task.delete(id)==0){ NotFound("La tarea "+id+" no existe"); }
-    else{ Ok("Tarea "+id+" ha sido eliminada con éxito") }  
+    else{ Ok(id) }  
   }
 }
