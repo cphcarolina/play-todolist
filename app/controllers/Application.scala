@@ -4,8 +4,8 @@ import play.api._
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
-import play.api.libs.json._
-import play.api.libs.functional.syntax._
+import java.util.Date
+
 import models.Task
 
 object Application extends Controller {
@@ -15,14 +15,7 @@ object Application extends Controller {
     "label" -> nonEmptyText
   )
 
-  // Para la conversión a JSON
-  implicit val taskWrites: Writes[Task] = (
-    (JsPath \ "id").write[Long] and
-    (JsPath \ "label").write[String] and
-    (JsPath \ "usuario").write[String]
-  )(unlift(Task.unapply))
-
-   // Acceso a la raíz (índice)
+  // Acceso a la raíz (índice)
   def index = Action {
     Redirect(routes.Application.tasks("anonimo"))
   }
@@ -33,22 +26,31 @@ object Application extends Controller {
 
     tareas match {
       case Some(tareas) => {
-        var json = Json.toJson(tareas)
-        Ok(json)
-
+        Ok(tareas)
       }
       case None => NotFound("El usuario "+usuario+" no existe.")
     }
   }
 
+  // Listar las tareas futuras (fecha >= hoy)
+  def nextTasks(usuario: String = "anonimo") = Action {
+    var tareas = Task.upcoming(usuario)
+
+    tareas match {
+      case Some(tareas) => {
+        Ok(tareas)
+      }
+      case None => NotFound("¡Enhorabuena! No tienes tareas futuras. Descansa que te lo mereces ;)")
+    }
+  }
+
   // Obtención de una tarea contreta
-  def obtenerTask(id: Long) = Action  {
-    var tarea = Task.obtener(id)
+  def obtainTask(id: Long) = Action  {
+    var tarea = Task.obtain(id)
 
     tarea match {
       case Some(tarea) => {
-        var json = Json.toJson(tarea)
-        Ok(json)        
+        Ok(tarea)        
       }
       case None => NotFound("La tarea con el identificador "+id+" no existe.")
     }
@@ -63,9 +65,15 @@ object Application extends Controller {
 
             id match {
               case Some(id)  => {
-                var tarea = Task.obtener(id)
-                var json = Json.toJson(tarea)
-                Ok(json)
+                var tarea = Task.obtain(id)
+
+                tarea match {
+                  case Some(tarea) => {
+                    Ok(tarea)        
+                  }
+                  case None => NotFound("La tarea con el identificador "+id+" no existe.")
+                }
+
               }
               case None => NotFound("El usuario "+usuario+" no existe.")
             }
@@ -73,10 +81,23 @@ object Application extends Controller {
       )
   }
 
+  // Retrasa una tarea los días indicados
+  def postponeTask(id: Long, day: Int) = Action {
+    var tarea = Task.postpone(id,day)
+
+    tarea match {
+      case Some(tarea) => {
+        Ok(tarea)        
+      }
+      case None => NotFound("La tarea con el identificador "+id+" no existe.")
+    }
+
+  }
+
+
   // Eliminación de tareas (desde el template)
   def deleteTask(id: Long) = Action {
     if(Task.delete(id)==0){ NotFound("La tarea "+id+" no existe"); }
-    else{ Ok("Tarea "+id+" ha sido eliminada con éxito") }  
+    else{ Ok(id) }  
   }
-
 }
